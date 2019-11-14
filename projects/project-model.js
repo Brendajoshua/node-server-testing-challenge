@@ -1,5 +1,5 @@
-const db = require("../data/db-config");
-const boolToString = require("../middlware/boolToString");
+const db = require('../data/db-config');
+const boolToString = require('../middlware/boolToString');
 
 module.exports = {
   findAll,
@@ -10,14 +10,14 @@ module.exports = {
 };
 
 function findAll() {
-  return db("projects").then(projects => {
+  return db('projects').then(projects => {
     boolToString(projects);
     return projects;
   });
 }
 
 function findById(id) {
-  return db("projects")
+  return db('projects')
     .where({ id })
     .then(project => {
       boolToString(project);
@@ -26,24 +26,24 @@ function findById(id) {
 }
 
 function insert(project) {
-  return db("projects")
-    .insert(project, "id")
+  return db('projects')
+    .insert(project, 'id')
     .then(([id]) => {
       return findById(id);
     });
 }
 
 function update(changes, id) {
-  return db("projects")
+  return db('projects')
     .update(changes)
-    .where("id", id)
+    .where('id', id)
     .then(() => {
       return findById(id);
     });
 }
 
 function remove(id) {
-  return db("projects")
+  return db('projects')
     .where({ id })
     .del();
 }

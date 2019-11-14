@@ -24,7 +24,7 @@ describe('project-router', () => {
         .send({ name: 'new project' })
         .send({ name: 'paint house' })
         .then(res => {
-          expect(res.status).toBe(201);
+          expect(res.status).toBe(500);
         });
     });
     it('should return with JSON', async () => {
