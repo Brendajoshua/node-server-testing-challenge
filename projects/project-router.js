@@ -1,63 +1,80 @@
-const request = require("supertest");
+const router = require('express').Router();
 
-const db = require("../data/db-config");
-const Projects = require("./project-model");
+const Projects = require('./project-model');
 
-const server = require("../server");
-
-describe("project-router", () => {
-  beforeEach(async () => {
-    await db("projects").truncate();
-  });
-
-  describe("GET /api/projects", () => {
-    it("responds with 200 OK", async () => {
-      const res = await request(server).get("/api/projects");
-      expect(res.status).toBe(200);
+router.get('/', (req, res) => {
+  Projects.findAll()
+    .then(projects => {
+      res.status(200).json(projects);
+    })
+    .catch(err => {
+      res.status(500).json({ message: 'Failed to get projects' });
     });
-  });
-
-  describe("POST /api/projects", () => {
-    it("should responds with 201 OK", async () => {
-      await request(server)
-        .post("/api/projects")
-        .send({ name: "new project" })
-        .send({ name: "paint house" })
-        .then(res => {
-          expect(res.status).toBe(201);
-        });
-    });
-    it("should return with JSON", async () => {
-      await request(server)
-        .post("/api/projects")
-        .send({ name: "new project" })
-        .then(res => {
-          expect(res.type).toMatch(/json/i);
-        });
-    });
-  });
-
-  describe("DELETE /api/projects/:id", () => {
-    it("should respond with 200 OK", async () => {
-      await Projects.insert({ name: "new project" });
-
-      await request(server)
-        .delete("/api/projects/1")
-        .then(res => {
-          expect(res.status).toBe(200);
-        });
-    });
-
-    it("should delete a project", async () => {
-      await Projects.insert({ name: "new project" });
-
-      let projects = await db("projects");
-      expect(projects).toHaveLength(1);
-
-      await request(server).delete("/api/projects/1");
-
-      projects = await db("projects");
-      expect(projects).toHaveLength(0);
-    });
-  });
 });
+
+router.get('/:id', (req, res) => {
+  Projects.findById(req.params.id)
+    .then(project => {
+      if (project) {
+        res.status(200).json(project);
+      } else {
+        res
+          .status(404)
+          .json({ message: 'Could not find project with given id.' });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ message: 'Failed to get project' });
+    });
+});
+
+router.post('/', (req, res) => {
+  Projects.insert(req.body)
+    .then(project => {
+      res.status(201).json(project);
+    })
+    .catch(err => {
+      res.status(500).json({ message: 'Failed to create new project' });
+    });
+});
+
+router.put('/:id', (req, res) => {
+  const id = req.params.id;
+  const changes = req.body;
+
+  Projects.findById(id)
+    .then(project => {
+      if (project) {
+        Projects.update(changes, id).then(updatedProject => {
+          res.status(200).json(updatedProject);
+        });
+      } else {
+        res
+          .status(404)
+          .json({ message: 'Could not find project with given id' });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ message: 'Failed to update project' });
+    });
+});
+
+router.delete('/:id', (req, res) => {
+  const { id } = req.params;
+
+  Projects.remove(id)
+    .then(deleted => {
+      if (deleted) {
+        res.status(200).json({ message: 'Project deleted' });
+      } else {
+        res
+          .status(404)
+          .json({ message: 'Could not find project with given id' });
+      }
+    })
+    .catch(err => {
+      res.status(500).json({ message: 'Failed to delete project' });
+    });
+});
+
+module.exports = router;
