@@ -1,4 +1,4 @@
-const db = require("../data/db-config.js");
+const db = require("../data/db-config");
 const boolToString = require("../middlware/boolToString");
 
 module.exports = {
